@@ -1,4 +1,5 @@
 using Alpha.Identity.Data;
+using Alpha.Identity.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,12 +19,16 @@ internal class Program
         builder.Services.AddHealthChecks();
         builder.Services.AddSwaggerGen();
 
+        builder.Services.AddSingleton<ITokenService, TokenService>();
+
         builder.Services.AddDbContext<DataContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")!));
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddAuthorization();
         builder.Services.AddIdentityApiEndpoints<IdentityUser>()
-           .AddEntityFrameworkStores<DataContext>();
+            .AddRoles<IdentityRole>()
+           .AddEntityFrameworkStores<DataContext>()
+           ;
 
         var app = builder.Build();
         return app;
@@ -37,7 +42,7 @@ internal class Program
             app.UseSwaggerUI();
         }
 
-        app.MapIdentityApi<IdentityUser>();
+//        app.MapIdentityApi<IdentityUser>();
 
         app.UseAuthentication();
         app.UseAuthorization();
