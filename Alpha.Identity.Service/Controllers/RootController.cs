@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Alpha.Identity.Controllers;
 
+[ApiExplorerSettings(IgnoreApi=true)]
 [Route("/")]
 public class RootController : ControllerBase
 {
