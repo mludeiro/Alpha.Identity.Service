@@ -43,7 +43,7 @@ internal class Program
             };
             builder.Services.AddSingleton(tokenValidationParameters);
 
-        builder.Services.AddSingleton<ITokenService, TokenService>();
+        builder.Services.AddScoped<ITokenService, TokenService>();
 
         builder.Services.AddDbContext<DataContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")!));
 

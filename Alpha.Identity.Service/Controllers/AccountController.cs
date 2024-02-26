@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Alpha.Identity.Common.DTO;
+using Alpha.Identity.ModelView;
 using Alpha.Identity.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -54,14 +54,12 @@ public class AccountController(UserManager<IdentityUser> userManager, ITokenServ
             return Unauthorized("Invalid username/password");
         }
 
-        var getUserRole = await userManager.GetRolesAsync(user);
-
-        var token = TokenService.GenerateToken(user.Id, user.UserName!, user.Email ?? user.UserName!, String.Join(",", getUserRole) );
+        var token = await TokenService.GenerateToken(user);
 
         // await userManager.SetAuthenticationTokenAsync(user,"jwt","jwt",token);
         // await userManager.AddLoginAsync(user, new UserLoginInfo("jwt","jwt","jwt"));
 
-        return Ok(token);
+        return Ok(new { token });
     }
 
     [HttpGet]
