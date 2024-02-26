@@ -22,10 +22,26 @@ internal class Program
         builder.Services.AddControllers();
         builder.Services.AddHealthChecks();
         builder.Services.AddSwaggerGen();
-
         
         var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
         builder.Services.AddSingleton(jwtOptions);
+
+            // TODO replace jwtOption with TokenValidationParameters
+            var tokenValidationParameters = new TokenValidationParameters()
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtOptions.Key!)),
+
+                ValidateIssuer = true,
+                ValidIssuer = jwtOptions.Issuer,
+
+                ValidateAudience = true,
+                ValidAudience = jwtOptions.Audience,
+
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+            builder.Services.AddSingleton(tokenValidationParameters);
 
         builder.Services.AddSingleton<ITokenService, TokenService>();
 
@@ -33,22 +49,23 @@ internal class Program
 
         builder.Services.AddEndpointsApiExplorer();
 
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
+            builder.Services.AddAuthentication(options =>
             {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtOptions.Issuer,
-                ValidAudience = jwtOptions.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key!))
-            };
-        });
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = tokenValidationParameters;
+            });
 
-        builder.Services.AddAuthorization();
+//        builder.Services.AddAuthorization();
         builder.Services.AddIdentity<IdentityUser,IdentityRole>()
-           .AddEntityFrameworkStores<DataContext>();
+           .AddEntityFrameworkStores<DataContext>()
+           .AddDefaultTokenProviders();
 
         var app = builder.Build();
         return app;
@@ -60,9 +77,12 @@ internal class Program
         {
             app.UseSwagger();
             app.UseSwaggerUI();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Identity Service"));
         }
 
-        //app.MapIdentityApi<IdentityUser>();
+        // app.MapIdentityApi<IdentityUser>();
+        // app.UseHttpsRedirection();
+        // app.UseRouting();
 
         app.UseAuthentication();
         app.UseAuthorization();
