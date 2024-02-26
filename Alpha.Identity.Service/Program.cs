@@ -1,7 +1,11 @@
+using System.Text;
 using Alpha.Identity.Data;
+using Alpha.Identity.DTO;
 using Alpha.Identity.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Alpha.Identity;
 
@@ -19,16 +23,32 @@ internal class Program
         builder.Services.AddHealthChecks();
         builder.Services.AddSwaggerGen();
 
+        
+        var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
+        builder.Services.AddSingleton(jwtOptions);
+
         builder.Services.AddSingleton<ITokenService, TokenService>();
 
         builder.Services.AddDbContext<DataContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")!));
 
         builder.Services.AddEndpointsApiExplorer();
+
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtOptions.Issuer,
+                ValidAudience = jwtOptions.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key!))
+            };
+        });
+
         builder.Services.AddAuthorization();
-        builder.Services.AddIdentityApiEndpoints<IdentityUser>()
-            .AddRoles<IdentityRole>()
-           .AddEntityFrameworkStores<DataContext>()
-           ;
+        builder.Services.AddIdentity<IdentityUser,IdentityRole>()
+           .AddEntityFrameworkStores<DataContext>();
 
         var app = builder.Build();
         return app;
@@ -42,7 +62,7 @@ internal class Program
             app.UseSwaggerUI();
         }
 
-//        app.MapIdentityApi<IdentityUser>();
+        //app.MapIdentityApi<IdentityUser>();
 
         app.UseAuthentication();
         app.UseAuthorization();
