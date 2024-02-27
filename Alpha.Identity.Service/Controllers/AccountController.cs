@@ -83,9 +83,8 @@ public class AccountController(UserManager<IdentityUser> userManager, ITokenServ
         return Ok( new AccountLoginResponse { Token = token, RefreshToken = tokenRequest.RefreshToken });
     }
 
-    [HttpGet]
-    [Authorize]
-    [Route("info")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    [HttpGet("info")]
     public async Task<IActionResult> Info()
     {
         var username = httpContext.HttpContext?.User.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;

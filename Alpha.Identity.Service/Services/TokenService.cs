@@ -46,7 +46,7 @@ public class TokenService(UserManager<IdentityUser> userManager, DataContext dat
             issuer: jwtOptions.Issuer,
             audience: jwtOptions.Audience,
             claims: userClaims,
-            expires: DateTime.Now.AddMinutes(10),
+            expires: DateTime.Now.AddMinutes(60),
             signingCredentials: credentials
             );
 
