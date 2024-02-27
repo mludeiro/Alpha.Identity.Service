@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace Alpha.Identity;
 
@@ -21,27 +23,35 @@ internal class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddControllers();
         builder.Services.AddHealthChecks();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(o =>
+        {
+            o.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+            {
+                In = ParameterLocation.Header,
+                Name = "Authorization",
+                Type = SecuritySchemeType.ApiKey
+            });
+            o.OperationFilter<SecurityRequirementsOperationFilter>();
+        });
         
         var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
         builder.Services.AddSingleton(jwtOptions);
 
-            // TODO replace jwtOption with TokenValidationParameters
-            var tokenValidationParameters = new TokenValidationParameters()
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtOptions.Key!)),
+        var tokenValidationParameters = new TokenValidationParameters()
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtOptions.Key!)),
 
-                ValidateIssuer = true,
-                ValidIssuer = jwtOptions.Issuer,
+            ValidateIssuer = true,
+            ValidIssuer = jwtOptions.Issuer,
 
-                ValidateAudience = true,
-                ValidAudience = jwtOptions.Audience,
+            ValidateAudience = true,
+            ValidAudience = jwtOptions.Audience,
 
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
-            };
-            builder.Services.AddSingleton(tokenValidationParameters);
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+        builder.Services.AddSingleton(tokenValidationParameters);
 
         builder.Services.AddScoped<ITokenService, TokenService>();
 

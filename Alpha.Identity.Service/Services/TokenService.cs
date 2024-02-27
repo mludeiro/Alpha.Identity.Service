@@ -3,6 +3,7 @@ using Alpha.Identity.DTO;
 using Alpha.Identity.Model;
 using Alpha.Identity.ModelView;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -13,6 +14,7 @@ namespace Alpha.Identity.Services;
 public interface ITokenService
 {
     Task<JwtSecurityToken> GenerateToken(IdentityUser user);
+    Task<JwtSecurityToken?> GenerateToken(string refreshToken);
     Task<RefreshToken> GenerateRefreshToken( JwtSecurityToken token, IdentityUser user);
     string SerializeToken(JwtSecurityToken token);
 
@@ -71,4 +73,20 @@ public class TokenService(UserManager<IdentityUser> userManager, DataContext dat
         return refreshToken;
     }
 
+    public async Task<JwtSecurityToken?> GenerateToken(string refreshToken)
+    {
+        var data = dataContext.RefreshTokens.Include(x => x.User).FirstOrDefault( x => x.Token == refreshToken );
+
+        if( data?.User is null )
+        {
+            return null;
+        }
+
+        var token = await GenerateToken(data.User);
+
+        data.JwtId = token.Id;
+        await dataContext.SaveChangesAsync();
+
+        return token;
+    }
 }

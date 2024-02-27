@@ -3,6 +3,7 @@ using Alpha.Identity.ModelView;
 using Alpha.Identity.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Alpha.Identity.Controllers;
@@ -65,6 +66,21 @@ public class AccountController(UserManager<IdentityUser> userManager, ITokenServ
         };
 
         return Ok(response);
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshToken([FromBody] AccountRefresh tokenRequest)
+    {
+        if (tokenRequest?.RefreshToken is null)
+            return BadRequest("Please, provide all required fields");
+
+        var jwttoken = await TokenService.GenerateToken(tokenRequest.RefreshToken);
+
+        if(jwttoken is null)
+            return Unauthorized();
+
+        var token = TokenService.SerializeToken(jwttoken);
+        return Ok( new AccountLoginResponse { Token = token, RefreshToken = tokenRequest.RefreshToken });
     }
 
     [HttpGet]
