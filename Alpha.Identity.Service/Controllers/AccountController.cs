@@ -54,12 +54,17 @@ public class AccountController(UserManager<IdentityUser> userManager, ITokenServ
             return Unauthorized("Invalid username/password");
         }
 
-        var token = await TokenService.GenerateToken(user);
+        var jwttoken = await TokenService.GenerateToken(user);
 
         // await userManager.SetAuthenticationTokenAsync(user,"jwt","jwt",token);
         // await userManager.AddLoginAsync(user, new UserLoginInfo("jwt","jwt","jwt"));
+        var refreshToken = await TokenService.GenerateRefreshToken(jwttoken, user);
+        var response = new AccountLoginResponse {
+            Token = TokenService.SerializeToken(jwttoken),
+            RefreshToken = refreshToken.Token
+        };
 
-        return Ok(new { token });
+        return Ok(response);
     }
 
     [HttpGet]

@@ -1,4 +1,7 @@
+using Alpha.Identity.Data;
 using Alpha.Identity.DTO;
+using Alpha.Identity.Model;
+using Alpha.Identity.ModelView;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,12 +12,15 @@ namespace Alpha.Identity.Services;
 
 public interface ITokenService
 {
-    Task<string> GenerateToken(IdentityUser user);
+    Task<JwtSecurityToken> GenerateToken(IdentityUser user);
+    Task<RefreshToken> GenerateRefreshToken( JwtSecurityToken token, IdentityUser user);
+    string SerializeToken(JwtSecurityToken token);
+
 }
 
-public class TokenService(UserManager<IdentityUser> userManager, JwtOptions jwtOptions) : ITokenService
+public class TokenService(UserManager<IdentityUser> userManager, DataContext dataContext, JwtOptions jwtOptions) : ITokenService
 {
-    public async Task<string> GenerateToken(IdentityUser user)
+    public async Task<JwtSecurityToken> GenerateToken(IdentityUser user)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -38,10 +44,31 @@ public class TokenService(UserManager<IdentityUser> userManager, JwtOptions jwtO
             issuer: jwtOptions.Issuer,
             audience: jwtOptions.Audience,
             claims: userClaims,
-            expires: DateTime.Now.AddDays(1),
+            expires: DateTime.Now.AddMinutes(10),
             signingCredentials: credentials
             );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+//        var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
+        return token;
     }
+
+    public string SerializeToken(JwtSecurityToken token) => new JwtSecurityTokenHandler().WriteToken(token);
+
+    public async Task<RefreshToken> GenerateRefreshToken( JwtSecurityToken token, IdentityUser user)
+    {
+        var refreshToken = new RefreshToken()
+        {
+            JwtId = token.Id,
+            IsRevoked = false,
+            UserId = user.Id,
+            DateAdded = DateTime.UtcNow,
+            DateExpire = DateTime.UtcNow.AddMonths(6),
+            Token = Guid.NewGuid().ToString() + "-" + Guid.NewGuid().ToString()
+        };
+        await dataContext.RefreshTokens.AddAsync(refreshToken);
+        await dataContext.SaveChangesAsync();
+
+        return refreshToken;
+    }
+
 }
