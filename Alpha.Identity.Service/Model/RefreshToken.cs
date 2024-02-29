@@ -20,5 +20,5 @@ public class RefreshToken
     public required string UserId { get; set; }
 
     [ForeignKey(nameof(UserId))]
-    public IdentityUser? User { get; set; }
+    public AlphaUser? User { get; set; }
 }

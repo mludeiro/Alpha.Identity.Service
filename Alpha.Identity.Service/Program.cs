@@ -1,6 +1,7 @@
 using System.Text;
 using Alpha.Identity.Data;
 using Alpha.Identity.DTO;
+using Alpha.Identity.Model;
 using Alpha.Identity.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -73,10 +74,10 @@ internal class Program
             });
 
 //        builder.Services.AddAuthorization();
-        builder.Services.AddIdentity<IdentityUser,IdentityRole>()
+        builder.Services.AddIdentity<AlphaUser,IdentityRole>()
            .AddEntityFrameworkStores<DataContext>()
            .AddDefaultTokenProviders();
-
+        
         var app = builder.Build();
         return app;
     }

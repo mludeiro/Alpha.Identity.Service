@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Alpha.Identity.Model;
 using Alpha.Identity.ModelView;
 using Alpha.Identity.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Alpha.Identity.Controllers;
 
 [Route("/api/account")]
-public class AccountController(UserManager<IdentityUser> userManager, ITokenService TokenService, 
+public class AccountController(UserManager<AlphaUser> userManager, ITokenService TokenService, 
         IHttpContextAccessor httpContext) : ControllerBase
 {
     [HttpPost]
@@ -33,7 +34,7 @@ public class AccountController(UserManager<IdentityUser> userManager, ITokenServ
             return BadRequest("Email already registered");
         }
 
-        user = new IdentityUser(register.Name!) { Email = register.Email };
+        user = new AlphaUser(register.Name!) { Email = register.Email };
 
         var operationResult = await userManager.CreateAsync(user, register.Password!);
 

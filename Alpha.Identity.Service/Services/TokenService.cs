@@ -13,16 +13,16 @@ namespace Alpha.Identity.Services;
 
 public interface ITokenService
 {
-    Task<JwtSecurityToken> GenerateToken(IdentityUser user);
+    Task<JwtSecurityToken> GenerateToken(AlphaUser user);
     Task<JwtSecurityToken?> GenerateToken(string refreshToken);
-    Task<RefreshToken> GenerateRefreshToken( JwtSecurityToken token, IdentityUser user);
+    Task<RefreshToken> GenerateRefreshToken( JwtSecurityToken token, AlphaUser user);
     string SerializeToken(JwtSecurityToken token);
 
 }
 
-public class TokenService(UserManager<IdentityUser> userManager, DataContext dataContext, JwtOptions jwtOptions) : ITokenService
+public class TokenService(UserManager<AlphaUser> userManager, DataContext dataContext, JwtOptions jwtOptions) : ITokenService
 {
-    public async Task<JwtSecurityToken> GenerateToken(IdentityUser user)
+    public async Task<JwtSecurityToken> GenerateToken(AlphaUser user)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -56,7 +56,7 @@ public class TokenService(UserManager<IdentityUser> userManager, DataContext dat
 
     public string SerializeToken(JwtSecurityToken token) => new JwtSecurityTokenHandler().WriteToken(token);
 
-    public async Task<RefreshToken> GenerateRefreshToken( JwtSecurityToken token, IdentityUser user)
+    public async Task<RefreshToken> GenerateRefreshToken( JwtSecurityToken token, AlphaUser user)
     {
         var refreshToken = new RefreshToken()
         {
