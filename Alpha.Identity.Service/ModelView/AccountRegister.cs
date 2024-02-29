@@ -9,6 +9,15 @@ public class AccountRegister
     [JsonPropertyName("user")]
     public string? Name {get; set;}
 
+
+    [Required]
+    [JsonPropertyName("firstName")]
+    public string? FirstName { get; set; }
+
+    [Required]
+    [JsonPropertyName("lastName")]
+    public string? LastName { get; set; }
+    
     [Required]
     [JsonPropertyName("email")]
     public string? Email {get; set;}

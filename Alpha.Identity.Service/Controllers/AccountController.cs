@@ -34,7 +34,7 @@ public class AccountController(UserManager<AlphaUser> userManager, ITokenService
             return BadRequest("Email already registered");
         }
 
-        user = new AlphaUser(register.Name!) { Email = register.Email };
+        user = new AlphaUser(register.Name!) { Email = register.Email, FirstName = register.FirstName, LastName = register.LastName };
 
         var operationResult = await userManager.CreateAsync(user, register.Password!);
 
