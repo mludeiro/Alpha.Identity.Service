@@ -5,6 +5,7 @@ using Alpha.Identity.ModelView;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Collections;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -31,14 +32,14 @@ public class TokenService(UserManager<AlphaUser> userManager, DataContext dataCo
         {
             new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Name, user.UserName!),
-            new(ClaimTypes.GivenName, user.FirstName!),
-            new(ClaimTypes.Surname, user.LastName!),
+            new(ClaimTypes.GivenName, user.FirstName ?? string.Empty),
+            new(ClaimTypes.Surname, user.LastName ?? string.Empty),
             new(ClaimTypes.Email, user.Email!),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
         //Add User Role Claims
-        var userRoles = await userManager.GetRolesAsync(user);
+        IEnumerable<string> userRoles = user.IsAdmin ? dataContext.Roles.Select(x => x.Name!) : await userManager.GetRolesAsync(user);
         foreach (var userRole in userRoles)
         {
             userClaims.Add(new Claim(ClaimTypes.Role, userRole));

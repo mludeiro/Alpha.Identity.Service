@@ -18,5 +18,7 @@ public class AlphaUser : IdentityUser
 
     [MaxLength(100)]
     public string? LastName { get; set; }
+
+    public bool IsAdmin { get; set; }
 }
 
