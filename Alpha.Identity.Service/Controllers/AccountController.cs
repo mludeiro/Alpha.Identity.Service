@@ -20,7 +20,7 @@ public class AccountController(UserManager<AlphaUser> userManager, ITokenService
         if( !ModelState.IsValid )
             return BadRequest("Missing required fields");
 
-        var user = await userManager.FindByNameAsync(register.Name!);
+        var user = await userManager.FindByNameAsync(register.Username!);
         if (user is not null)
             return BadRequest("User already registered");
 
@@ -28,12 +28,12 @@ public class AccountController(UserManager<AlphaUser> userManager, ITokenService
         if (user is not null)
             return BadRequest("Email already registered");
         
-        user = new AlphaUser(register.Name!) 
+        user = new AlphaUser(register.Username!) 
         {
             Email = register.Email,
             FirstName = register.FirstName,
             LastName = register.LastName,
-            IsAdmin = "admin".Equals(user?.UserName, StringComparison.OrdinalIgnoreCase)
+            IsAdmin = "admin".Equals(register.Username, StringComparison.OrdinalIgnoreCase)
         };
 
         var operationResult = await userManager.CreateAsync(user, register.Password!);

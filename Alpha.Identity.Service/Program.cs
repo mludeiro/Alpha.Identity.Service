@@ -55,6 +55,7 @@ internal class Program
         builder.Services.AddSingleton(tokenValidationParameters);
 
         builder.Services.AddScoped<ITokenService, TokenService>();
+        builder.Services.AddHostedService<DbInitializer>();
 
         builder.Services.AddDbContext<DataContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")!));
 
@@ -100,16 +101,9 @@ internal class Program
         app.MapControllers();
         app.MapHealthChecks("/health");
 
-        MigrateDb(app);
-
         app.Run();
     }
 
 
-    private static void MigrateDb(WebApplication app)
-    {
-        var scope = app.Services.CreateScope();
-        var dc = scope.ServiceProvider.GetRequiredService<DataContext>();
-        dc.Database.Migrate();
-    }
+
 }

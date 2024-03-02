@@ -6,9 +6,8 @@ namespace Alpha.Identity.ModelView;
 public class AccountRegister
 {
     [Required]
-    [JsonPropertyName("user")]
-    public string? Name {get; set;}
-
+    [JsonPropertyName("userName")]
+    public string? Username {get; set;}
 
     [Required]
     [JsonPropertyName("firstName")]
