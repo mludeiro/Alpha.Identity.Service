@@ -4,8 +4,8 @@ using Alpha.Identity.ModelView;
 using Alpha.Identity.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+
 
 namespace Alpha.Identity.Controllers;
 
@@ -13,8 +13,8 @@ namespace Alpha.Identity.Controllers;
 public class AccountController(UserManager<AlphaUser> userManager, ITokenService TokenService, 
         IHttpContextAccessor httpContext) : ControllerBase
 {
-    [HttpPost]
-    [Route("register")]
+    [AllowAnonymous]
+    [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] AccountRegister register)
     {
         if( !ModelState.IsValid )
@@ -36,13 +36,15 @@ public class AccountController(UserManager<AlphaUser> userManager, ITokenService
             IsAdmin = "admin".Equals(register.Username, StringComparison.OrdinalIgnoreCase)
         };
 
+
         var operationResult = await userManager.CreateAsync(user, register.Password!);
+        await userManager.AddClaimAsync(user, new Claim( PolicyClaim.identityUserMe, "true"));
 
         return operationResult is not null && operationResult.Succeeded ? Ok() : StatusCode(500, operationResult?.Errors);
     }
 
-    [HttpPost]
-    [Route("login")]
+    [AllowAnonymous]
+    [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] AccountLogin login)
     {
         if( !ModelState.IsValid )
@@ -69,6 +71,7 @@ public class AccountController(UserManager<AlphaUser> userManager, ITokenService
         return Ok(response);
     }
 
+    [AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken([FromBody] AccountRefresh tokenRequest)
     {
@@ -84,9 +87,9 @@ public class AccountController(UserManager<AlphaUser> userManager, ITokenService
         return Ok( new AccountLoginResponse { Token = token, RefreshToken = tokenRequest.RefreshToken });
     }
 
-    [Authorize(AuthenticationSchemes = "Bearer")]
-    [HttpGet("info")]
-    public async Task<IActionResult> Info()
+    [Authorize(AuthenticationSchemes = "Bearer", Policy = PolicyClaim.identityUserMe)]
+    [HttpGet("me")]
+    public async Task<IActionResult> Me()
     {
         var username = httpContext.HttpContext?.User.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
         if( username is null )

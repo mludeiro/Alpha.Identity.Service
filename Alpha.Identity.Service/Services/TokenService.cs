@@ -9,6 +9,7 @@ using System.Collections;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 namespace Alpha.Identity.Services;
 
@@ -21,14 +22,15 @@ public interface ITokenService
 
 }
 
-public class TokenService(UserManager<AlphaUser> userManager, DataContext dataContext, JwtOptions jwtOptions) : ITokenService
+public class TokenService(UserManager<AlphaUser> userManager, DataContext dataContext, 
+    JwtOptions jwtOptions) : ITokenService
 {
     public async Task<JwtSecurityToken> GenerateToken(AlphaUser user)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-        var userClaims = new List<Claim>()
+        var claims = new List<Claim>()
         {
             new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Name, user.UserName!),
@@ -38,22 +40,53 @@ public class TokenService(UserManager<AlphaUser> userManager, DataContext dataCo
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        //Add User Role Claims
-        IEnumerable<string> userRoles = user.IsAdmin ? dataContext.Roles.Select(x => x.Name!) : await userManager.GetRolesAsync(user);
-        foreach (var userRole in userRoles)
+        var userClaims = await userManager.GetClaimsAsync(user);
+        if( userClaims != null )
         {
-            userClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            foreach (var userClaim in userClaims)
+            {
+                claims.Add(new Claim(userClaim.Type, "true"));
+            }
+        }
+
+        //Add User Role Claims
+        if(user.IsAdmin)
+        {
+            PolicyClaim.Values.ForEach( c => claims.Add(new Claim(c.Type, "true") ));
+        }
+        else
+        {
+            var rolenames = await userManager.GetRolesAsync(user);
+
+            var roleClaims = from userRole in rolenames
+                 join role in dataContext.Roles on userRole equals role.Name
+                 join roleClaim in dataContext.RoleClaims on role.Id equals roleClaim.RoleId
+                 select roleClaim.ClaimType;
+
+            foreach (var roleClaim in roleClaims.Distinct())
+            {
+                claims.Add(new Claim(roleClaim, "true"));
+            }
+
+            // var roleids = dataContext.Roles.Where( r => rolenames.Contains(r.Name!) ).Select(r => r.Id);
+            // var roleclaims = dataContext.RoleClaims.Where( rc => roleids.Contains(rc.RoleId) ).Select(rc => rc.ClaimType).Distinct();
+
+            // foreach( var roleClaim in roleclaims )
+            // {
+            //     userClaims.Add(new Claim(roleClaim!, "true"));
+            // }
         }
 
         var token = new JwtSecurityToken(
             issuer: jwtOptions.Issuer,
             audience: jwtOptions.Audience,
-            claims: userClaims,
+            claims: claims,
             expires: DateTime.Now.AddMinutes(60),
             signingCredentials: credentials
             );
 
-//        var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
+        Console.WriteLine( JsonSerializer.Serialize(token) );
+
         return token;
     }
 

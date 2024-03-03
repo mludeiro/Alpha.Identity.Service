@@ -74,7 +74,9 @@ internal class Program
                 options.TokenValidationParameters = tokenValidationParameters;
             });
 
-//        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy(PolicyClaim.identityUserMe, authBuilder => { authBuilder.RequireClaim(PolicyClaim.identityUserMe); });
+        
         builder.Services.AddIdentity<AlphaUser,IdentityRole>()
            .AddEntityFrameworkStores<DataContext>()
            .AddDefaultTokenProviders();
