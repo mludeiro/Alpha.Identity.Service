@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Alpha.Identity.Model;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Alpha.Identity.Data;
 
@@ -10,20 +9,13 @@ public class DbInitializer(IServiceProvider serviceProvider) :  BackgroundServic
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await Task.Delay(500, stoppingToken);
+        await Task.Delay(5000, stoppingToken);
 
         var scope = serviceProvider.CreateScope();
         var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AlphaUser>>();
 
-        dataContext.Database.Migrate();
-
-        //await NewMethod(roleManager, userManager);
-    }
-
-    private static async Task NewMethod(RoleManager<IdentityRole> roleManager, UserManager<AlphaUser> userManager)
-    {
         var res = await roleManager.CreateAsync(new IdentityRole() { Name = "role1" });
 
         var res2 = await roleManager.CreateAsync(new IdentityRole() { Name = "role2" });

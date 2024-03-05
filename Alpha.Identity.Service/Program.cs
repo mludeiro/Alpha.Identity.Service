@@ -1,4 +1,5 @@
 using System.Text;
+using Alpha.Utils.Database;
 using Alpha.Identity.Data;
 using Alpha.Identity.DTO;
 using Alpha.Identity.Model;
@@ -55,7 +56,7 @@ internal class Program
         builder.Services.AddSingleton(tokenValidationParameters);
 
         builder.Services.AddScoped<ITokenService, TokenService>();
-        builder.Services.AddHostedService<DbInitializer>();
+        builder.Services.AddHostedService<DbMigrationBackgroundService<DataContext>>();
 
         builder.Services.AddDbContext<DataContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")!));
 

@@ -6,6 +6,12 @@ WORKDIR /app
 
 ARG APP_NAME=Alpha.Identity.Service
 
+ARG GITHUB_USER
+ENV GITHUB_USER ${GITHUB_USER}
+
+ARG GITHUB_TOKEN
+ENV GITHUB_TOKEN ${GITHUB_TOKEN}
+
 COPY . ./${APP_NAME}
 
 RUN dotnet restore ${APP_NAME}
@@ -16,7 +22,7 @@ FROM build as publish
 
 ARG APP_NAME=Alpha.Identity.Service
 
-RUN dotnet publish ./${APP_NAME} -c Release -o /${APP_NAME}/publish/
+RUN dotnet publish ./${APP_NAME} -c Release -o /${APP_NAME}/publish/ 
 
 # --------------------------------------------------------------------- app ---
 
@@ -29,5 +35,6 @@ ENV APP_NAME ${APP_NAME}
 WORKDIR /app
 
 COPY --from=publish /${APP_NAME}/publish/ .
+
 
 ENTRYPOINT ["dotnet", "Alpha.Identity.Service.dll"]
