@@ -36,5 +36,6 @@ WORKDIR /app
 
 COPY --from=publish /${APP_NAME}/publish/ .
 
+ENV ASPNETCORE_HTTP_PORTS=8080
 
 ENTRYPOINT ["dotnet", "Alpha.Identity.Service.dll"]

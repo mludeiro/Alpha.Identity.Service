@@ -11,6 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Refit;
+using Consul;
+using Alpha.Utils.Consul;
 
 namespace Alpha.Identity;
 
@@ -83,10 +85,21 @@ internal class Program
            .AddEntityFrameworkStores<DataContext>()
            .AddDefaultTokenProviders();
         
+        var consulConfig = builder.Configuration.GetSection("Consul").Get<ConsulConfig>()!;
+
+        builder.Services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient(config =>
+        {
+            config.Address = new Uri(consulConfig.ConsulAddress!);
+        }));
+
+        builder.Services.AddSingleton<IHostedService, ConsulHostedService>();
+        builder.Services.AddSingleton(consulConfig);
+
         builder.Services.AddRefitClient<IRestTokenService>()
             .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://token:8080"));
 
         var app = builder.Build();
+        
         return app;
     }
 
@@ -109,8 +122,21 @@ internal class Program
         app.MapHealthChecks("/health");
 
         app.Run();
+
+// app.Start();
+
+// var server = app.Services.GetService<IServer>();
+// var addressFeature = server.Features.Get<IServerAddressesFeature>();
+
+// foreach (var address in addressFeature.Addresses)
+// {
+//     Console.WriteLine("Kestrel is listening on address: " + address);
+// }
+
+// app.WaitForShutdown();
     }
 
 
 
 }
+
