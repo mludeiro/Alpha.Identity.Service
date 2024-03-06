@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Alpha.Identity.Controllers;
 
 [Route("/api/account")]
-public class AccountController(UserManager<AlphaUser> userManager, ITokenService TokenService, 
+public class AccountController(UserManager<AlphaUser> userManager, IIdentityTokenService TokenService, 
         IHttpContextAccessor httpContext) : ControllerBase
 {
     [AllowAnonymous]
@@ -60,32 +60,24 @@ public class AccountController(UserManager<AlphaUser> userManager, ITokenService
 
         var jwttoken = await TokenService.GenerateToken(user);
 
-        // await userManager.SetAuthenticationTokenAsync(user,"jwt","jwt",token);
-        // await userManager.AddLoginAsync(user, new UserLoginInfo("jwt","jwt","jwt"));
-        var refreshToken = await TokenService.GenerateRefreshToken(jwttoken, user);
-        var response = new AccountLoginResponse {
-            Token = TokenService.SerializeToken(jwttoken),
-            RefreshToken = refreshToken.Token
-        };
-
-        return Ok(response);
+        return Ok(jwttoken);
     }
 
-    [AllowAnonymous]
-    [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshToken([FromBody] AccountRefresh tokenRequest)
-    {
-        if (tokenRequest?.RefreshToken is null)
-            return BadRequest("Please, provide all required fields");
+    // [AllowAnonymous]
+    // [HttpPost("refresh")]
+    // public async Task<IActionResult> RefreshToken([FromBody] AccountRefresh tokenRequest)
+    // {
+    //     if (tokenRequest?.RefreshToken is null)
+    //         return BadRequest("Please, provide all required fields");
 
-        var jwttoken = await TokenService.GenerateToken(tokenRequest.RefreshToken);
+    //     var jwttoken = await TokenService.GenerateToken(tokenRequest.RefreshToken);
 
-        if(jwttoken is null)
-            return Unauthorized();
+    //     if(jwttoken is null)
+    //         return Unauthorized();
 
-        var token = TokenService.SerializeToken(jwttoken);
-        return Ok( new AccountLoginResponse { Token = token, RefreshToken = tokenRequest.RefreshToken });
-    }
+    //     var token = TokenService.SerializeToken(jwttoken);
+    //     return Ok( new AccountLoginResponse { Token = token, RefreshToken = tokenRequest.RefreshToken });
+    // }
 
     [Authorize(AuthenticationSchemes = "Bearer", Policy = PolicyClaim.identityUserMe)]
     [HttpGet("me")]

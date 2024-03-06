@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using Refit;
 
 namespace Alpha.Identity;
 
@@ -55,7 +56,7 @@ internal class Program
         };
         builder.Services.AddSingleton(tokenValidationParameters);
 
-        builder.Services.AddScoped<ITokenService, TokenService>();
+        builder.Services.AddScoped<IIdentityTokenService, IdentityTokenService>();
         builder.Services.AddHostedService<DbMigrationBackgroundService<DataContext>>();
 
         builder.Services.AddDbContext<DataContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")!));
@@ -82,6 +83,9 @@ internal class Program
            .AddEntityFrameworkStores<DataContext>()
            .AddDefaultTokenProviders();
         
+        builder.Services.AddRefitClient<IRestTokenService>()
+            .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://token:8080"));
+
         var app = builder.Build();
         return app;
     }

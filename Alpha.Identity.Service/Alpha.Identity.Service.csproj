@@ -19,5 +19,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.2"/>
     <PackageReference Include="Alpha.Common" Version="1.0.8"/>
     <PackageReference Include="Alpha.Utils" Version="1.0.2"/>
+    <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0"/>
   </ItemGroup>
 </Project>
