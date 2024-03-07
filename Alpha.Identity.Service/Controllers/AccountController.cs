@@ -10,8 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Alpha.Identity.Controllers;
 
 [Route("/api/account")]
-public class AccountController(UserManager<AlphaUser> userManager, IIdentityTokenService TokenService, 
-        IHttpContextAccessor httpContext) : ControllerBase
+public class AccountController(UserManager<AlphaUser> userManager, IIdentityTokenService identityTokenService, 
+        IRestTokenService tokenService, IHttpContextAccessor httpContext) : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("register")]
@@ -58,9 +58,17 @@ public class AccountController(UserManager<AlphaUser> userManager, IIdentityToke
             return Unauthorized("Invalid username/password");
         }
 
-        var jwttoken = await TokenService.GenerateToken(user);
+        var claims = await identityTokenService.GenerateTokenClaims(user);
 
-        return Ok(jwttoken);
+        var tokenResponse = await tokenService.PostAsync(claims);
+
+        if( tokenResponse.StatusCode == System.Net.HttpStatusCode.BadGateway )
+            return Unauthorized("Cant connect to token service");
+
+        if( !tokenResponse.IsSuccessStatusCode )
+            return Unauthorized("Token service error");
+            
+        return Ok(tokenResponse.Content);
     }
 
     // [AllowAnonymous]

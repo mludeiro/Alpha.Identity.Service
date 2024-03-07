@@ -27,6 +27,8 @@ internal class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddControllers();
         builder.Services.AddHealthChecks();
+        builder.Services.AddMemoryCache();
+
         builder.Services.AddSwaggerGen(o =>
         {
             o.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -86,8 +88,12 @@ internal class Program
         
         builder.Services.ConsulServicesConfig(builder.Configuration.GetSection("Consul").Get<ConsulConfig>()!);
 
-        builder.Services.AddRefitClient<IRestTokenService>()
-            .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://token:8080"));
+        builder.Services.AddScoped<ConsulRegistryHandler>();
+        
+        builder.Services.AddRefitClient<IRestTokenService>( )
+            .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://token.service:8080"))
+            .AddHttpMessageHandler<ConsulRegistryHandler>();
+            
 
         var app = builder.Build();
         

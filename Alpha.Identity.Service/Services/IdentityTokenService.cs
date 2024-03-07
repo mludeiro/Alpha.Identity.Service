@@ -1,6 +1,7 @@
 using Alpha.Common.Token;
 using Alpha.Identity.Data;
 using Alpha.Identity.Model;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -9,12 +10,12 @@ namespace Alpha.Identity.Services;
 
 public interface IIdentityTokenService
 {
-    Task<TokenGeneration> GenerateToken(AlphaUser user);
+    Task<List<ClaimValue>> GenerateTokenClaims(AlphaUser user);
 }
 
-public class IdentityTokenService(UserManager<AlphaUser> userManager, DataContext dataContext, IRestTokenService restTokenService) : IIdentityTokenService
+public class IdentityTokenService(UserManager<AlphaUser> userManager, DataContext dataContext) : IIdentityTokenService
 {
-    public async Task<TokenGeneration> GenerateToken(AlphaUser user)
+    public async Task<List<ClaimValue>> GenerateTokenClaims(AlphaUser user)
     {
         var claims = new List<ClaimValue>()
         {
@@ -56,8 +57,7 @@ public class IdentityTokenService(UserManager<AlphaUser> userManager, DataContex
 
         }
 
-        var tokenResponse = await restTokenService.PostAsync(claims);
-        return tokenResponse!;
+        return claims;
     }
 
 }
