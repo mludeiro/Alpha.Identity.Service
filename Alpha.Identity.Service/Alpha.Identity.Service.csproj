@@ -22,6 +22,6 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0"/>
 
     <PackageReference Include="Alpha.Common" Version="1.0.8"/>
-    <PackageReference Include="Alpha.Utils" Version="1.0.3"/>
+    <PackageReference Include="Alpha.Utils" Version="1.0.5"/>
   </ItemGroup>
 </Project>
