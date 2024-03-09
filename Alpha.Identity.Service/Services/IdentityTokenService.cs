@@ -1,7 +1,6 @@
-using Alpha.Common.Token;
+using Alpha.Common.TokenService;
 using Alpha.Identity.Data;
 using Alpha.Identity.Model;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;

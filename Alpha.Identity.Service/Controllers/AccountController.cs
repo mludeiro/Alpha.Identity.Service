@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Alpha.Common.TokenService;
 using Alpha.Identity.Model;
 using Alpha.Identity.ModelView;
 using Alpha.Identity.Services;
@@ -11,7 +12,7 @@ namespace Alpha.Identity.Controllers;
 
 [Route("/api/account")]
 public class AccountController(UserManager<AlphaUser> userManager, IIdentityTokenService identityTokenService, 
-        IRestTokenService tokenService, IHttpContextAccessor httpContext) : ControllerBase
+        ITokenService tokenService, IHttpContextAccessor httpContext) : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("register")]
@@ -60,14 +61,14 @@ public class AccountController(UserManager<AlphaUser> userManager, IIdentityToke
 
         var claims = await identityTokenService.GenerateTokenClaims(user);
 
-        var tokenResponse = await tokenService.PostAsync(claims);
+        var tokenResponse = await tokenService.GetToken(claims);
 
         if( tokenResponse.StatusCode == System.Net.HttpStatusCode.BadGateway )
             return Unauthorized("Cant connect to token service");
 
         if( !tokenResponse.IsSuccessStatusCode )
             return Unauthorized("Token service error");
-            
+
         return Ok(tokenResponse.Content);
     }
 

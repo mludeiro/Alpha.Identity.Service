@@ -1,7 +1,5 @@
 using System.Text;
-using Alpha.Utils.Database;
 using Alpha.Identity.Data;
-using Alpha.Identity.DTO;
 using Alpha.Identity.Model;
 using Alpha.Identity.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,7 +9,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Refit;
-using Alpha.Utils.Consul;
+using Alpha.Common.Consul;
+using Alpha.Common.Database;
+using Alpha.Common.TokenService;
+using Alpha.Common.Configuration;
 
 namespace Alpha.Identity;
 
@@ -46,7 +47,7 @@ internal class Program
         var tokenValidationParameters = new TokenValidationParameters()
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtOptions.Key!)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key!)),
 
             ValidateIssuer = true,
             ValidIssuer = jwtOptions.Issuer,
@@ -66,18 +67,18 @@ internal class Program
 
         builder.Services.AddEndpointsApiExplorer();
 
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.SaveToken = true;
-                options.RequireHttpsMetadata = false;
-                options.TokenValidationParameters = tokenValidationParameters;
-            });
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.SaveToken = true;
+            options.RequireHttpsMetadata = false;
+            options.TokenValidationParameters = tokenValidationParameters;
+        });
 
         builder.Services.AddAuthorizationBuilder()
             .AddPolicy(PolicyClaim.identityUserMe, authBuilder => { authBuilder.RequireClaim(PolicyClaim.identityUserMe); });
@@ -90,7 +91,7 @@ internal class Program
 
         builder.Services.AddScoped<ConsulRegistryHandler>();
         
-        builder.Services.AddRefitClient<IRestTokenService>( )
+        builder.Services.AddRefitClient<ITokenService>()
             .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://token.service:8080"))
             .AddHttpMessageHandler<ConsulRegistryHandler>();
             
@@ -119,18 +120,6 @@ internal class Program
         app.MapHealthChecks("/health");
 
         app.Run();
-
-// app.Start();
-
-// var server = app.Services.GetService<IServer>();
-// var addressFeature = server.Features.Get<IServerAddressesFeature>();
-
-// foreach (var address in addressFeature.Addresses)
-// {
-//     Console.WriteLine("Kestrel is listening on address: " + address);
-// }
-
-// app.WaitForShutdown();
     }
 
 
