@@ -20,6 +20,6 @@
     <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0"/>
     <PackageReference Include="Consul" Version="1.7.14.3"/>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0"/>
-    <PackageReference Include="Alpha.Common" Version="*"/>
+    <PackageReference Include="Alpha.Common" Version="1.0.18"/>
   </ItemGroup>
 </Project>

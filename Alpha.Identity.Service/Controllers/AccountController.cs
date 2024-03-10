@@ -1,12 +1,11 @@
 using System.Security.Claims;
 using Alpha.Common.TokenService;
+using Alpha.Common.Identity;
 using Alpha.Identity.Model;
-using Alpha.Identity.ModelView;
 using Alpha.Identity.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-
 
 namespace Alpha.Identity.Controllers;
 
@@ -104,7 +103,23 @@ public class AccountController(UserManager<AlphaUser> userManager, IIdentityToke
             return NotFound("User not found");
         }
 
-        return Ok(user);
+        
+        return Ok(new AccountInfo
+        {
+            Id = user.Id,
+            UserName = user.UserName!,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            IsAdmin = user.IsAdmin,
+            Email = user.Email,
+            EmailConfirmed = user.EmailConfirmed,
+            PhoneNumber = user.PhoneNumber,
+            PhoneNumberConfirmed = user.PhoneNumberConfirmed,
+            TwoFactorEnabled = user.TwoFactorEnabled,
+            AccessFailedCount = user.AccessFailedCount,
+            LockoutEnabled = user.LockoutEnabled,
+            LockoutEnd = user.LockoutEnd
+        });
     }
 
 }
