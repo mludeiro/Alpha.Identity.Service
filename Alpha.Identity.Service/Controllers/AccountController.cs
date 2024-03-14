@@ -61,7 +61,11 @@ public class AccountController(UserManager<AlphaUser> userManager, IIdentityToke
 
         var claims = await identityTokenService.GenerateTokenClaims(user);
 
-        var tokenResponse = await tokenService.GetToken(claims);
+        var tokenResponse = await tokenService.GetToken( new TokenRequest {
+            UserId = user.Id,
+            UserName = user.UserName ?? user.Id,
+            ClaimValues = claims
+        });
 
         if( tokenResponse.StatusCode == System.Net.HttpStatusCode.BadGateway )
             return Unauthorized("Cant connect to token service");

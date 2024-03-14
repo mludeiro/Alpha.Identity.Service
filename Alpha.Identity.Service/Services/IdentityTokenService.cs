@@ -18,12 +18,9 @@ public class IdentityTokenService(UserManager<AlphaUser> userManager, DataContex
     {
         var claims = new List<ClaimValue>()
         {
-            new() { Type = ClaimTypes.NameIdentifier, Value = user.Id},
-            new() { Type = ClaimTypes.Name, Value = user.UserName},
             new() { Type = ClaimTypes.GivenName, Value =  user.FirstName ?? string.Empty},
             new() { Type = ClaimTypes.Surname, Value = user.LastName ?? string.Empty},
-            new() { Type = ClaimTypes.Email, Value = user.Email!},
-            new() { Type = JwtRegisteredClaimNames.Jti, Value = Guid.NewGuid().ToString()} // TODO move to token service
+            new() { Type = ClaimTypes.Email, Value = user.Email!}
         };
 
         var userClaims = await userManager.GetClaimsAsync(user);
