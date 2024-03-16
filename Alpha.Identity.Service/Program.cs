@@ -1,4 +1,3 @@
-using System.Text;
 using Alpha.Identity.Data;
 using Alpha.Identity.Model;
 using Alpha.Identity.Services;
@@ -13,6 +12,7 @@ using Alpha.Common.Consul;
 using Alpha.Common.Database;
 using Alpha.Common.TokenService;
 using Alpha.Common.Configuration;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Alpha.Identity;
 
@@ -30,6 +30,7 @@ internal class Program
         builder.Services.AddHealthChecks();
         builder.Services.AddMemoryCache();
 
+
         builder.Services.AddSwaggerGen(o =>
         {
             o.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -42,43 +43,27 @@ internal class Program
         });
         
         var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
-        builder.Services.AddSingleton(jwtOptions);
-
-        var tokenValidationParameters = new TokenValidationParameters()
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key!)),
-
-            ValidateIssuer = true,
-            ValidIssuer = jwtOptions.Issuer,
-
-            ValidateAudience = true,
-            ValidAudience = jwtOptions.Audience,
-
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-        builder.Services.AddSingleton(tokenValidationParameters);
+        
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudience = jwtOptions.Audience,
+                    ValidateIssuerSigningKey = false,
+                    SignatureValidator = (string token, TokenValidationParameters parameters) => new JwtSecurityToken(token)
+                };
+            });
 
         builder.Services.AddScoped<IIdentityTokenService, IdentityTokenService>();
         builder.Services.AddHostedService<DbMigrationBackgroundService<DataContext>>();
 
         builder.Services.AddDbContext<DataContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")!));
 
-        builder.Services.AddEndpointsApiExplorer();
-
-        builder.Services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options =>
-        {
-            options.SaveToken = true;
-            options.RequireHttpsMetadata = false;
-            options.TokenValidationParameters = tokenValidationParameters;
-        });
 
         builder.Services.AddAuthorizationBuilder()
             .AddPolicy(PolicyClaim.identityUserMe, authBuilder => { authBuilder.RequireClaim(PolicyClaim.identityUserMe); });

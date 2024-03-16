@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Mapster;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Alpha.Identity.Controllers;
 
@@ -92,7 +93,7 @@ public class AccountController(UserManager<AlphaUser> userManager, IIdentityToke
     //     return Ok( new AccountLoginResponse { Token = token, RefreshToken = tokenRequest.RefreshToken });
     // }
 
-    [Authorize(AuthenticationSchemes = "Bearer", Policy = PolicyClaim.identityUserMe)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = PolicyClaim.identityUserMe)]
     [HttpGet("me")]
     public async Task<IActionResult> Me()
     {
