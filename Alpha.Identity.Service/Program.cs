@@ -1,18 +1,15 @@
 using Alpha.Identity.Data;
 using Alpha.Identity.Model;
 using Alpha.Identity.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Refit;
 using Alpha.Common.Consul;
 using Alpha.Common.Database;
 using Alpha.Common.TokenService;
-using System.IdentityModel.Tokens.Jwt;
-using Alpha.Common.Authentication;
+using Alpha.Common.Security;
 
 namespace Alpha.Identity;
 
@@ -50,9 +47,7 @@ internal class Program
 
         builder.Services.AddDbContext<DataContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")!));
 
-
-        builder.Services.AddAuthorizationBuilder()
-            .AddPolicy(PolicyClaim.identityUserMe, authBuilder => { authBuilder.RequireClaim(PolicyClaim.identityUserMe); });
+        builder.Services.AddAuthorizationBuilder().AddAlphaAuthorizationPolicies();
         
         builder.Services.AddIdentity<AlphaUser,IdentityRole>()
            .AddEntityFrameworkStores<DataContext>()

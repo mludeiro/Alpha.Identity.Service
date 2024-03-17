@@ -1,3 +1,4 @@
+using Alpha.Common.Security;
 using Alpha.Common.TokenService;
 using Alpha.Identity.Data;
 using Alpha.Identity.Model;
@@ -35,7 +36,10 @@ public class IdentityTokenService(UserManager<AlphaUser> userManager, DataContex
         //Add User Role Claims
         if(user.IsAdmin)
         {
-            PolicyClaim.Values.ForEach( c => claims.Add(new() { Type =c.Type, Value = "true" }));
+            foreach(var claim in PolicyClaim.Values)
+            {
+                claims.Add(new() { Type = claim.Type, Value = "true" });
+            }
         }
         else
         {
@@ -50,7 +54,6 @@ public class IdentityTokenService(UserManager<AlphaUser> userManager, DataContex
             {
                 claims.Add( new() { Type = roleClaim, Value = "true" });
             }
-
         }
 
         return claims;

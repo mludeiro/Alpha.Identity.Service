@@ -23,7 +23,7 @@
 
     <PackageReference Include="Consul" Version="1.7.14.3"/>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0"/>
-    <PackageReference Include="Alpha.Common" Version="1.0.27"/>
+    <PackageReference Include="Alpha.Common" Version="1.0.28"/>
     <PackageReference Include="Mapster" Version="7.4.0"/>
   </ItemGroup>
 </Project>
