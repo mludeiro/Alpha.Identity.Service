@@ -3,7 +3,6 @@ using Alpha.Common.TokenService;
 using Alpha.Identity.Data;
 using Alpha.Identity.Model;
 using Microsoft.AspNetCore.Identity;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace Alpha.Identity.Services;
@@ -19,9 +18,9 @@ public class IdentityTokenService(UserManager<AlphaUser> userManager, DataContex
     {
         var claims = new List<ClaimValue>()
         {
-            new() { Type = ClaimTypes.GivenName, Value =  user.FirstName ?? string.Empty},
-            new() { Type = ClaimTypes.Surname, Value = user.LastName ?? string.Empty},
-            new() { Type = ClaimTypes.Email, Value = user.Email!}
+            new() { Type = ClaimTypes.GivenName, Value =  user.FirstName ?? string.Empty },
+            new() { Type = ClaimTypes.Surname, Value = user.LastName ?? string.Empty },
+            new() { Type = ClaimTypes.Email, Value = user.Email! }
         };
 
         var userClaims = await userManager.GetClaimsAsync(user);
