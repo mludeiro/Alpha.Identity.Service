@@ -11,8 +11,8 @@ using Refit;
 using Alpha.Common.Consul;
 using Alpha.Common.Database;
 using Alpha.Common.TokenService;
-using Alpha.Common.Configuration;
 using System.IdentityModel.Tokens.Jwt;
+using Alpha.Common.Authentication;
 
 namespace Alpha.Identity;
 
@@ -43,21 +43,7 @@ internal class Program
         });
         
         var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
-        
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidIssuer = jwtOptions.Issuer,
-                    ValidAudience = jwtOptions.Audience,
-                    ValidateIssuerSigningKey = false,
-                    SignatureValidator = (string token, TokenValidationParameters parameters) => new JwtSecurityToken(token)
-                };
-            });
+        builder.Services.AddAlphaAuthentication(jwtOptions);
 
         builder.Services.AddScoped<IIdentityTokenService, IdentityTokenService>();
         builder.Services.AddHostedService<DbMigrationBackgroundService<DataContext>>();
