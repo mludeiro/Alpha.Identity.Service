@@ -10,6 +10,7 @@ using Alpha.Common.Consul;
 using Alpha.Common.Database;
 using Alpha.Common.TokenService;
 using Alpha.Common.Security;
+using Dapr.Client;
 
 namespace Alpha.Identity;
 
@@ -53,14 +54,18 @@ internal class Program
            .AddEntityFrameworkStores<DataContext>()
            .AddDefaultTokenProviders();
         
-        builder.Services.ConsulServicesConfig(builder.Configuration.GetSection("Consul").Get<ConsulConfig>()!);
+        // builder.Services.ConsulServicesConfig(builder.Configuration.GetSection("Consul").Get<ConsulConfig>()!);
 
-        builder.Services.AddScoped<ConsulRegistryHandler>();
+        // builder.Services.AddScoped<ConsulRegistryHandler>();
         
+        // builder.Services.AddRefitClient<ITokenService>()
+        //     .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://token.service:8080"))
+        //     .AddHttpMessageHandler<ConsulRegistryHandler>();
+
         builder.Services.AddRefitClient<ITokenService>()
-            .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://token.service:8080"))
-            .AddHttpMessageHandler<ConsulRegistryHandler>();
-            
+            .ConfigureHttpClient(options => { options.BaseAddress = new Uri($"http://token"); })
+            .AddHttpMessageHandler(_ => new InvocationHandler());
+
 
         var app = builder.Build();
         
