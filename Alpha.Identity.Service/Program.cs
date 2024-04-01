@@ -11,6 +11,7 @@ using Alpha.Common.Database;
 using Alpha.Common.TokenService;
 using Alpha.Common.Security;
 using Dapr.Client;
+using Dapr.Extensions.Configuration;
 
 namespace Alpha.Identity;
 
@@ -28,6 +29,10 @@ internal class Program
         builder.Services.AddHealthChecks();
         builder.Services.AddMemoryCache();
 
+        var connection = "identity-db-connection";
+
+        using var daprClient = new DaprClientBuilder().Build();
+        builder.Configuration.AddDaprSecretStore("identity-secret-store", daprClient);
 
         builder.Services.AddSwaggerGen(o =>
         {
@@ -46,7 +51,7 @@ internal class Program
         builder.Services.AddScoped<IIdentityTokenService, IdentityTokenService>();
         builder.Services.AddHostedService<DbMigrationBackgroundService<DataContext>>();
 
-        builder.Services.AddDbContext<DataContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")!));
+        builder.Services.AddDbContext<DataContext>(o => o.UseNpgsql(builder.Configuration[connection]!));
 
         builder.Services.AddAuthorizationBuilder().AddAlphaAuthorizationPolicies();
         
