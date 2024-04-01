@@ -32,7 +32,7 @@ internal class Program
         var connection = "identity-db-connection";
 
         using var daprClient = new DaprClientBuilder().Build();
-        builder.Configuration.AddDaprSecretStore("identity-secret-store", daprClient);
+        builder.Configuration.AddDaprSecretStore("token-secret-store", daprClient);
 
         builder.Services.AddSwaggerGen(o =>
         {
