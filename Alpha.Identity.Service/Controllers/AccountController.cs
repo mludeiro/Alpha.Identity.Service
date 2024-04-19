@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Alpha.Common.Security;
+using Alpha.Tools.Security;
 
 namespace Alpha.Identity.Controllers;
 

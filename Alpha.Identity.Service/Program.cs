@@ -6,12 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Refit;
-using Alpha.Common.Consul;
-using Alpha.Common.Database;
 using Alpha.Common.TokenService;
-using Alpha.Common.Security;
 using Dapr.Client;
 using Dapr.Extensions.Configuration;
+using Alpha.Tools.Security;
+using Alpha.Tools.Database;
 
 namespace Alpha.Identity;
 
@@ -54,7 +53,8 @@ internal class Program
         builder.Services.AddDbContext<DataContext>(o => o.UseNpgsql(builder.Configuration[connection]!));
 
         builder.Services.AddAuthorizationBuilder().AddAlphaAuthorizationPolicies();
-        
+
+       
         builder.Services.AddIdentity<AlphaUser,IdentityRole>()
            .AddEntityFrameworkStores<DataContext>()
            .AddDefaultTokenProviders();

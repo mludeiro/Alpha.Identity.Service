@@ -1,7 +1,7 @@
-using Alpha.Common.Security;
 using Alpha.Common.TokenService;
 using Alpha.Identity.Data;
 using Alpha.Identity.Model;
+using Alpha.Tools.Security;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
